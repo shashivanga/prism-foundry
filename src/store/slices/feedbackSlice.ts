@@ -3,15 +3,18 @@ import { StateCreator } from 'zustand';
 export interface Feedback {
   id: string;
   projectId: string;
-  buildId: string;
-  shareLinkId?: string;
-  authorEmail?: string;
+  buildId?: string;
+  mvpSpecId?: string;
+  category: 'feature-request' | 'bug' | 'question';
   message: string;
-  rating?: number;
-  category: 'bug' | 'feature' | 'improvement' | 'general';
-  status: 'open' | 'reviewed' | 'resolved' | 'archived';
+  status: 'new' | 'in-progress' | 'resolved';
+  clientId: string;
+  clientName: string;
+  notes?: string;
   createdAt: Date;
   updatedAt: Date;
+  resolvedAt?: Date;
+  resolvedBy?: string;
 }
 
 export interface FeedbackSlice {
