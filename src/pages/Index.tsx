@@ -63,10 +63,8 @@ const Index = () => {
                       window.location.href = '/client/projects';
                       break;
                     case 'pm':
-                      window.location.href = '/pm/dashboard';
-                      break;
                     case 'admin':
-                      window.location.href = '/admin/dashboard';
+                      window.location.href = '/internal/projects';
                       break;
                     default:
                       window.location.href = '/client/auth/login';

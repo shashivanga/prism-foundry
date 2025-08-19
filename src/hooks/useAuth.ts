@@ -65,9 +65,9 @@ export function useAuth(options: UseAuthOptions = {}) {
       if (currentUser.role === 'client') {
         navigate('/client/projects');
       } else if (currentUser.role === 'pm') {
-        navigate('/pm/dashboard');
+        navigate('/internal/projects');
       } else if (currentUser.role === 'admin') {
-        navigate('/admin/dashboard');
+        navigate('/internal/projects');
       } else {
         navigate('/');
       }

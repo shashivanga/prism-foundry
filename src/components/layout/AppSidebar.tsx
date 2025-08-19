@@ -21,21 +21,44 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 
-const navigationItems = [
-  { title: 'Dashboard', url: '/', icon: Home },
-  { title: 'Projects', url: '/client/projects', icon: FolderOpen },
-  { title: 'PRD Versions', url: '/prd-versions', icon: FileText },
-  { title: 'MVP Specs', url: '/mvp-specs', icon: Rocket },
-  { title: 'Builds', url: '/builds', icon: Settings },
-  { title: 'Share Links', url: '/share-links', icon: Share2 },
-  { title: 'Feedback', url: '/feedback', icon: MessageSquare },
-];
+import { useAuth } from '@/hooks/useAuth';
+
+const getNavigationItems = (userRole?: string) => {
+  const baseItems = [
+    { title: 'Dashboard', url: '/', icon: Home },
+  ];
+
+  if (userRole === 'client') {
+    return [
+      ...baseItems,
+      { title: 'My Projects', url: '/client/projects', icon: FolderOpen },
+      { title: 'Feedback', url: '/feedback', icon: MessageSquare },
+    ];
+  }
+
+  if (userRole === 'pm' || userRole === 'admin') {
+    return [
+      ...baseItems,
+      { title: 'All Projects', url: '/internal/projects', icon: FolderOpen },
+      { title: 'PRD Versions', url: '/prd-versions', icon: FileText },
+      { title: 'MVP Specs', url: '/mvp-specs', icon: Rocket },
+      { title: 'Builds', url: '/builds', icon: Settings },
+      { title: 'Share Links', url: '/share-links', icon: Share2 },
+      { title: 'Feedback', url: '/feedback', icon: MessageSquare },
+    ];
+  }
+
+  return baseItems;
+};
 
 export function AppSidebar() {
   const { state } = useSidebar();
+  const { currentUser } = useAuth();
   const location = useLocation();
   const currentPath = location.pathname;
   const isCollapsed = state === 'collapsed';
+  
+  const navigationItems = getNavigationItems(currentUser?.role);
 
   const isActive = (path: string) => currentPath === path;
   const getNavClassName = ({ isActive }: { isActive: boolean }) =>

@@ -71,10 +71,8 @@ export default function InternalLogin() {
     // Navigate based on role
     switch (selectedRole) {
       case 'pm':
-        navigate('/pm/dashboard');
-        break;
       case 'admin':
-        navigate('/admin/dashboard');
+        navigate('/internal/projects');
         break;
       default:
         navigate('/');
