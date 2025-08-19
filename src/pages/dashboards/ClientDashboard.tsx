@@ -11,7 +11,7 @@ export default function ClientDashboard() {
   const { projects, feedback } = useAppStore();
 
   const userProjects = projects.filter(p => p.ownerId === currentUser?.id);
-  const userFeedback = feedback.filter(f => f.authorEmail === currentUser?.email);
+  const userFeedback = feedback.filter(f => f.clientId === currentUser?.id);
 
   const stats = [
     {
