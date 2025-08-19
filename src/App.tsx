@@ -16,6 +16,7 @@ import NewProject from "./pages/client/NewProject";
 import PRDEditor from "./pages/client/PRDEditor";
 import InternalProjects from "./pages/internal/Projects";
 import InternalProjectDetail from "./pages/internal/ProjectDetail";
+import ClientReview from "./pages/client/Review";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,9 @@ const App = () => {
           {/* Internal Projects */}
           <Route path="/internal/projects" element={<InternalProjects />} />
           <Route path="/internal/projects/:projectId" element={<InternalProjectDetail />} />
+          
+          {/* Client Review */}
+          <Route path="/client/review/:token" element={<ClientReview />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
