@@ -8,6 +8,7 @@ import { mvpSpecsSlice, MvpSpecsSlice } from './slices/mvpSpecsSlice';
 import { buildsSlice, BuildsSlice } from './slices/buildsSlice';
 import { shareLinksSlice, ShareLinksSlice } from './slices/shareLinksSlice';
 import { feedbackSlice, FeedbackSlice } from './slices/feedbackSlice';
+import { changeLogsSlice, ChangeLogsSlice } from './slices/changeLogsSlice';
 
 export type AppState = UsersSlice & 
   SessionSlice & 
@@ -16,7 +17,8 @@ export type AppState = UsersSlice &
   MvpSpecsSlice & 
   BuildsSlice & 
   ShareLinksSlice & 
-  FeedbackSlice;
+  FeedbackSlice &
+  ChangeLogsSlice;
 
 export const useAppStore = create<AppState>()(
   persist(
@@ -29,6 +31,7 @@ export const useAppStore = create<AppState>()(
       ...buildsSlice(...args),
       ...shareLinksSlice(...args),
       ...feedbackSlice(...args),
+      ...changeLogsSlice(...args),
     }),
     {
       name: 'app-storage',
@@ -42,6 +45,7 @@ export const useAppStore = create<AppState>()(
         builds: state.builds,
         shareLinks: state.shareLinks,
         feedback: state.feedback,
+        changeLogs: state.changeLogs,
       }),
     }
   )
