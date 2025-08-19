@@ -2,10 +2,12 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/useAuth';
 import { useAppStore } from '@/store';
 import { FolderOpen, FileText, Rocket, Activity } from 'lucide-react';
 
 const Index = () => {
+  const { isAuthenticated, currentUser } = useAuth();
   const { projects, prdVersions, mvpSpecs, builds } = useAppStore();
 
   const stats = [
@@ -52,12 +54,44 @@ const Index = () => {
             Streamline your development workflow from PRD to MVP with our integrated build and feedback system.
           </p>
           <div className="flex gap-4 justify-center mt-8">
-            <Button className="bg-gradient-primary border-0 shadow-glow transition-spring hover:scale-105">
-              Create Project
-            </Button>
-            <Button variant="outline" className="transition-smooth">
-              View Documentation
-            </Button>
+            {isAuthenticated ? (
+              <Button 
+                className="bg-gradient-primary border-0 shadow-glow transition-spring hover:scale-105"
+                onClick={() => {
+                  switch (currentUser?.role) {
+                    case 'client':
+                      window.location.href = '/client/dashboard';
+                      break;
+                    case 'pm':
+                      window.location.href = '/pm/dashboard';
+                      break;
+                    case 'admin':
+                      window.location.href = '/admin/dashboard';
+                      break;
+                    default:
+                      window.location.href = '/client/auth/login';
+                  }
+                }}
+              >
+                Go to Dashboard
+              </Button>
+            ) : (
+              <>
+                <Button 
+                  className="bg-gradient-primary border-0 shadow-glow transition-spring hover:scale-105"
+                  onClick={() => window.location.href = '/client/auth/signup'}
+                >
+                  Get Started
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="transition-smooth"
+                  onClick={() => window.location.href = '/internal/auth/login'}
+                >
+                  Team Access
+                </Button>
+              </>
+            )}
           </div>
         </div>
 

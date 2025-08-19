@@ -1,7 +1,7 @@
 import { StateCreator } from 'zustand';
 
 export interface Session {
-  userId?: string;
+  currentUserId?: string;
   token?: string;
   expiresAt?: Date;
   isAuthenticated: boolean;
@@ -9,7 +9,7 @@ export interface Session {
 
 export interface SessionSlice {
   session: Session;
-  login: (userId: string, token: string, expiresAt: Date) => void;
+  login: (currentUserId: string, token: string, expiresAt: Date) => void;
   logout: () => void;
   refreshSession: (token: string, expiresAt: Date) => void;
   isSessionValid: () => boolean;
@@ -19,10 +19,10 @@ export const sessionSlice: StateCreator<SessionSlice> = (set, get) => ({
   session: {
     isAuthenticated: false,
   },
-  login: (userId, token, expiresAt) =>
+  login: (currentUserId, token, expiresAt) =>
     set({
       session: {
-        userId,
+        currentUserId,
         token,
         expiresAt,
         isAuthenticated: true,

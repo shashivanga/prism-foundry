@@ -2,10 +2,11 @@ import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { useAppStore } from '@/store';
+import { useAuth } from '@/hooks/useAuth';
+import { LogOut } from 'lucide-react';
 
 export function TopBar() {
-  const { session } = useAppStore();
+  const { isAuthenticated, currentUser, logout } = useAuth();
 
   return (
     <header className="h-16 border-b border-sidebar-border bg-card/50 backdrop-blur-sm">
@@ -20,20 +21,50 @@ export function TopBar() {
         </div>
 
         <div className="flex items-center gap-4">
-          {session.isAuthenticated ? (
+          {isAuthenticated && currentUser ? (
             <div className="flex items-center gap-3">
+              <Badge variant="outline" className={`
+                ${currentUser.role === 'admin' ? 'bg-accent/10 text-accent border-accent/20' : ''}
+                ${currentUser.role === 'pm' ? 'bg-secondary/10 text-secondary border-secondary/20' : ''}
+                ${currentUser.role === 'client' ? 'bg-primary/10 text-primary border-primary/20' : ''}
+              `}>
+                {currentUser.role.toUpperCase()}
+              </Badge>
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder.svg" />
+                <AvatarImage src={currentUser.avatar} />
                 <AvatarFallback className="bg-gradient-primary text-primary-foreground">
-                  U
+                  {currentUser.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm font-medium">User</span>
+              <span className="text-sm font-medium">{currentUser.name}</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={logout}
+                className="transition-smooth"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
             </div>
           ) : (
-            <Button variant="outline" size="sm" className="transition-smooth">
-              Sign In
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => window.location.href = '/client/auth/login'}
+                className="transition-smooth"
+              >
+                Client Login
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => window.location.href = '/internal/auth/login'}
+                className="transition-smooth"
+              >
+                Team Login
+              </Button>
+            </div>
           )}
         </div>
       </div>

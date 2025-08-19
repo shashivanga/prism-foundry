@@ -7,6 +7,10 @@ import { useEffect } from "react";
 import { useAppStore } from "@/store";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import ClientLogin from "./pages/auth/client/Login";
+import ClientSignup from "./pages/auth/client/Signup";
+import InternalLogin from "./pages/auth/internal/Login";
+import ClientDashboard from "./pages/dashboards/ClientDashboard";
 
 const queryClient = new QueryClient();
 
@@ -25,11 +29,22 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          
+          {/* Client Auth Routes */}
+          <Route path="/client/auth/login" element={<ClientLogin />} />
+          <Route path="/client/auth/signup" element={<ClientSignup />} />
+          
+          {/* Internal Auth Routes */}
+          <Route path="/internal/auth/login" element={<InternalLogin />} />
+          
+          {/* Client Dashboard */}
+          <Route path="/client/dashboard" element={<ClientDashboard />} />
+          
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

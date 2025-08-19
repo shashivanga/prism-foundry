@@ -1,9 +1,12 @@
 import { StateCreator } from 'zustand';
 
+export type UserRole = 'client' | 'pm' | 'admin';
+
 export interface User {
   id: string;
   email: string;
   name: string;
+  role: UserRole;
   avatar?: string;
   createdAt: Date;
   updatedAt: Date;
