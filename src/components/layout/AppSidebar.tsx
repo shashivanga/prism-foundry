@@ -23,7 +23,7 @@ import {
 
 const navigationItems = [
   { title: 'Dashboard', url: '/', icon: Home },
-  { title: 'Projects', url: '/projects', icon: FolderOpen },
+  { title: 'Projects', url: '/client/projects', icon: FolderOpen },
   { title: 'PRD Versions', url: '/prd-versions', icon: FileText },
   { title: 'MVP Specs', url: '/mvp-specs', icon: Rocket },
   { title: 'Builds', url: '/builds', icon: Settings },

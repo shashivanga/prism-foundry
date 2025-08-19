@@ -45,7 +45,7 @@ export default function ClientLogin() {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
     login(createdUser.id, 'mock-token', expiresAt);
     
-    navigate('/client/dashboard');
+    navigate('/client/projects');
   };
 
   return (

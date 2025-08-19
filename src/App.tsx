@@ -11,6 +11,9 @@ import ClientLogin from "./pages/auth/client/Login";
 import ClientSignup from "./pages/auth/client/Signup";
 import InternalLogin from "./pages/auth/internal/Login";
 import ClientDashboard from "./pages/dashboards/ClientDashboard";
+import ClientProjects from "./pages/client/Projects";
+import NewProject from "./pages/client/NewProject";
+import PRDEditor from "./pages/client/PRDEditor";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +44,11 @@ const App = () => {
           
           {/* Client Dashboard */}
           <Route path="/client/dashboard" element={<ClientDashboard />} />
+          
+          {/* Client Projects */}
+          <Route path="/client/projects" element={<ClientProjects />} />
+          <Route path="/client/projects/new" element={<NewProject />} />
+          <Route path="/client/projects/:projectId/prd" element={<PRDEditor />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

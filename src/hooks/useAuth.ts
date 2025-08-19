@@ -63,7 +63,7 @@ export function useAuth(options: UseAuthOptions = {}) {
 
       // If we get here, access is denied - redirect to appropriate dashboard
       if (currentUser.role === 'client') {
-        navigate('/client/dashboard');
+        navigate('/client/projects');
       } else if (currentUser.role === 'pm') {
         navigate('/pm/dashboard');
       } else if (currentUser.role === 'admin') {

@@ -60,7 +60,7 @@ const Index = () => {
                 onClick={() => {
                   switch (currentUser?.role) {
                     case 'client':
-                      window.location.href = '/client/dashboard';
+                      window.location.href = '/client/projects';
                       break;
                     case 'pm':
                       window.location.href = '/pm/dashboard';
