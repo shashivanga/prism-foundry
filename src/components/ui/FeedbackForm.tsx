@@ -78,26 +78,37 @@ export function FeedbackForm({
   };
 
   return (
-    <Card className="shadow-card">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <Card className="glass-card shadow-elevated hover-scale transition-smooth">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-xl font-semibold flex items-center gap-2 gradient-text">
           <MessageSquare className="h-5 w-5" />
           Share Your Feedback
         </CardTitle>
+        <p className="text-sm text-muted-foreground text-balance">
+          Help us improve by sharing your thoughts and suggestions
+        </p>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
-            <Select value={category} onValueChange={(value) => setCategory(value as 'feature-request' | 'bug' | 'question')}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select feedback category" />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-3">
+            <Label htmlFor="category" className="text-sm font-medium">
+              Category <span className="text-destructive">*</span>
+            </Label>
+            <Select 
+              value={category} 
+              onValueChange={(value) => setCategory(value as 'feature-request' | 'bug' | 'question')}
+            >
+              <SelectTrigger 
+                aria-label="Select feedback category"
+                className="focus-ring transition-smooth"
+              >
+                <SelectValue placeholder="Choose a category..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-50">
                 {categoryOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     <span className="flex items-center gap-2">
-                      <span>{option.icon}</span>
+                      <span role="img" aria-label={option.label}>{option.icon}</span>
                       {option.label}
                     </span>
                   </SelectItem>
@@ -106,27 +117,38 @@ export function FeedbackForm({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="message">Message</Label>
+          <div className="space-y-3">
+            <Label htmlFor="message" className="text-sm font-medium">
+              Message <span className="text-destructive">*</span>
+            </Label>
             <Textarea
               id="message"
-              placeholder="Please describe your feedback in detail..."
+              placeholder="Please describe your feedback in detail. Be specific about what you'd like to see changed or improved..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
-              className="resize-none"
+              className="resize-none focus-ring transition-smooth min-h-[100px]"
+              aria-describedby="message-hint"
             />
+            <p id="message-hint" className="text-xs text-muted-foreground">
+              Provide as much detail as possible to help us understand your needs
+            </p>
           </div>
 
           <Button 
             type="submit" 
             disabled={isSubmitting || !category || !message.trim()}
-            className="w-full bg-gradient-primary border-0 shadow-glow transition-spring hover:scale-105"
+            className="w-full bg-gradient-primary hover:bg-gradient-primary/90 border-0 shadow-primary transition-spring hover:scale-[1.02] hover:shadow-glow focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-describedby={isSubmitting ? "submit-status" : undefined}
           >
             {isSubmitting ? (
               <>
-                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2" />
-                Submitting...
+                <div 
+                  className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2" 
+                  role="status"
+                  aria-label="Submitting feedback"
+                />
+                <span id="submit-status">Submitting...</span>
               </>
             ) : (
               <>

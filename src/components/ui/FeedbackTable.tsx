@@ -28,15 +28,39 @@ interface FeedbackTableProps {
 }
 
 const statusConfig = {
-  new: { label: 'New', color: 'bg-blue-100 text-blue-800', icon: AlertCircle },
-  'in-progress': { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-  resolved: { label: 'Resolved', color: 'bg-green-100 text-green-800', icon: CheckCircle },
+  new: { 
+    label: 'New', 
+    color: 'bg-primary/20 text-primary border-primary/30 badge-high-contrast', 
+    icon: AlertCircle 
+  },
+  'in-progress': { 
+    label: 'In Progress', 
+    color: 'bg-warning/20 text-warning border-warning/30 badge-high-contrast', 
+    icon: Clock 
+  },
+  resolved: { 
+    label: 'Resolved', 
+    color: 'bg-success/20 text-success border-success/30 badge-high-contrast', 
+    icon: CheckCircle 
+  },
 };
 
 const categoryConfig = {
-  'feature-request': { label: 'Feature Request', color: 'bg-purple-100 text-purple-800', icon: '💡' },
-  bug: { label: 'Bug Report', color: 'bg-red-100 text-red-800', icon: '🐛' },
-  question: { label: 'Question', color: 'bg-blue-100 text-blue-800', icon: '❓' },
+  'feature-request': { 
+    label: 'Feature Request', 
+    color: 'bg-secondary/20 text-secondary border-secondary/30 badge-high-contrast', 
+    icon: '💡' 
+  },
+  bug: { 
+    label: 'Bug Report', 
+    color: 'bg-destructive/20 text-destructive border-destructive/30 badge-high-contrast', 
+    icon: '🐛' 
+  },
+  question: { 
+    label: 'Question', 
+    color: 'bg-accent/20 text-accent border-accent/30 badge-high-contrast', 
+    icon: '❓' 
+  },
 };
 
 export function FeedbackTable({ feedback, onUpdateFeedback, onMarkResolved }: FeedbackTableProps) {
