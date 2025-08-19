@@ -338,7 +338,10 @@ export default function InternalProjectDetail() {
                   <CardTitle>MVP Specification</CardTitle>
                 </div>
                 <Badge className={mvpStatusConfig[mvpSpec.status]?.color}>
-                  {React.createElement(mvpStatusConfig[mvpSpec.status]?.icon || CheckCircle, { className: "h-3 w-3 mr-1" })}
+                  {(() => {
+                    const IconComponent = mvpStatusConfig[mvpSpec.status]?.icon;
+                    return IconComponent ? <IconComponent className="h-3 w-3 mr-1" /> : null;
+                  })()}
                   {mvpStatusConfig[mvpSpec.status]?.label}
                 </Badge>
               </div>
