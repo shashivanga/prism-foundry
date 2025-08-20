@@ -5,15 +5,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useAppStore } from '@/store';
+import { supabase } from '@/integrations/supabase/client';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/hooks/use-toast';
 
 export default function ClientLogin() {
   const navigate = useNavigate();
-  const { addUser, login } = useAppStore();
   const { isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -27,25 +28,41 @@ export default function ClientLogin() {
     );
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    // Mock login - create user and session
-    const newUser = {
-      email: formData.email,
-      name: formData.email.split('@')[0],
-      role: 'client' as const,
-    };
-    
-    addUser(newUser);
-    const users = useAppStore.getState().users;
-    const createdUser = users[users.length - 1];
-    
-    // Set session
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-    login(createdUser.id, 'mock-token', expiresAt);
-    
-    navigate('/client/projects');
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (error) {
+        toast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data.user) {
+        toast({
+          title: "Welcome back!",
+          description: "You have been logged in successfully.",
+        });
+        navigate('/client/projects');
+      }
+    } catch (error) {
+      toast({
+        title: "Login failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -121,8 +138,9 @@ export default function ClientLogin() {
               <Button 
                 type="submit" 
                 className="w-full bg-gradient-primary border-0 shadow-glow transition-spring hover:scale-105"
+                disabled={!formData.email || !formData.password || isSubmitting}
               >
-                Sign In
+                {isSubmitting ? "Signing In..." : "Sign In"}
               </Button>
             </form>
 
@@ -140,7 +158,7 @@ export default function ClientLogin() {
 
         <div className="text-center text-xs text-muted-foreground">
           <Badge variant="outline" className="bg-accent/10 text-accent border-accent/20">
-            Demo Mode - Any email/password will work
+            Real Authentication Enabled
           </Badge>
         </div>
       </div>

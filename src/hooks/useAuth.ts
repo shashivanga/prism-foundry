@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { useAppStore } from '@/store';
-import { UserRole } from '@/store/slices/usersSlice';
+import type { User, Session } from '@supabase/supabase-js';
+
+type UserRole = 'client' | 'pm' | 'admin';
 
 interface UseAuthOptions {
   requiredRole?: UserRole;
@@ -12,14 +15,59 @@ export function useAuth(options: UseAuthOptions = {}) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMounted, setIsMounted] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   
-  const { session, getUserById } = useAppStore();
-  const currentUser = session.currentUserId ? getUserById(session.currentUserId) : null;
+  const { login, logout: storeLogout } = useAppStore();
   
-  // Mount delay to avoid hydration mismatch
+  // Set up auth state listener and get initial session
   useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Update store session
+        if (session?.user) {
+          login(session.user.id, session.access_token, new Date(session.expires_at! * 1000));
+          
+          // Fetch user profile data
+          setTimeout(async () => {
+            try {
+              const { data: profile } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+              setUserProfile(profile);
+            } catch (error) {
+              console.error('Failed to fetch user profile:', error);
+            }
+          }, 0);
+        } else {
+          storeLogout();
+          setUserProfile(null);
+        }
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        login(session.user.id, session.access_token, new Date(session.expires_at! * 1000));
+      }
+    });
+
     const timer = setTimeout(() => setIsMounted(true), 100);
-    return () => clearTimeout(timer);
+    
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {
@@ -29,7 +77,7 @@ export function useAuth(options: UseAuthOptions = {}) {
     const isAuthPage = location.pathname.includes('/auth/');
     
     // If not authenticated and not on auth page, redirect to appropriate login
-    if (!session.isAuthenticated && !isAuthPage) {
+    if (!user && !isAuthPage) {
       if (requiredRole === 'client') {
         navigate('/client/auth/login');
       } else {
@@ -39,60 +87,70 @@ export function useAuth(options: UseAuthOptions = {}) {
     }
 
     // If authenticated and on auth page, redirect away
-    if (session.isAuthenticated && isAuthPage) {
+    if (user && isAuthPage) {
       navigate(redirectTo || '/');
       return;
     }
 
     // Role-based access control
-    if (requiredRole && currentUser) {
+    if (requiredRole && userProfile) {
       // Admin can access everything
-      if (currentUser.role === 'admin') {
+      if (userProfile.role === 'admin') {
         return;
       }
       
       // PM can access PM and client areas
-      if (currentUser.role === 'pm' && (requiredRole === 'client' || requiredRole === 'pm')) {
+      if (userProfile.role === 'pm' && (requiredRole === 'client' || requiredRole === 'pm')) {
         return;
       }
 
       // Exact role match
-      if (currentUser.role === requiredRole) {
+      if (userProfile.role === requiredRole) {
         return;
       }
 
       // If we get here, access is denied - redirect to appropriate dashboard
-      if (currentUser.role === 'client') {
+      if (userProfile.role === 'client') {
         navigate('/client/projects');
-      } else if (currentUser.role === 'pm') {
+      } else if (userProfile.role === 'pm') {
         navigate('/internal/projects');
-      } else if (currentUser.role === 'admin') {
+      } else if (userProfile.role === 'admin') {
         navigate('/internal/projects');
       } else {
         navigate('/');
       }
     }
-  }, [isMounted, session.isAuthenticated, currentUser, options, navigate, location.pathname]);
+  }, [isMounted, user, userProfile, options, navigate, location.pathname]);
 
-  const logout = () => {
-    useAppStore.getState().logout();
-    navigate('/');
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      storeLogout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force logout even if there's an error
+      storeLogout();
+      navigate('/');
+    }
   };
 
   return {
-    isAuthenticated: session.isAuthenticated,
-    currentUser,
+    isAuthenticated: !!user,
+    currentUser: userProfile,
+    user,
+    session,
     isLoading: !isMounted,
     logout,
     hasRole: (role: UserRole) => {
-      if (!currentUser) return false;
-      return currentUser.role === role || currentUser.role === 'admin';
+      if (!userProfile) return false;
+      return userProfile.role === role || userProfile.role === 'admin';
     },
     canAccess: (role: UserRole) => {
-      if (!currentUser) return false;
-      if (currentUser.role === 'admin') return true;
-      if (currentUser.role === 'pm' && (role === 'client' || role === 'pm')) return true;
-      return currentUser.role === role;
+      if (!userProfile) return false;
+      if (userProfile.role === 'admin') return true;
+      if (userProfile.role === 'pm' && (role === 'client' || role === 'pm')) return true;
+      return userProfile.role === role;
     }
   };
 }

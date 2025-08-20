@@ -6,32 +6,34 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAppStore } from '@/store';
-import { UserRole } from '@/store/slices/usersSlice';
+import { supabase } from '@/integrations/supabase/client';
 import { Eye, EyeOff, ArrowLeft, Shield, User, Crown } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/hooks/use-toast';
+
+type UserRole = 'pm' | 'admin';
 
 const roleConfig = {
   pm: {
     label: 'Project Manager',
     icon: User,
     description: 'Manage projects and client relationships',
-    color: 'gradient-secondary'
+    gradient: 'bg-gradient-secondary'
   },
   admin: {
     label: 'Administrator',
     icon: Crown,
     description: 'Full system access and management',
-    color: 'gradient-accent'
+    gradient: 'bg-gradient-accent'
   }
 };
 
 export default function InternalLogin() {
   const navigate = useNavigate();
-  const { addUser, login } = useAppStore();
   const { isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole | ''>('');
+  const [selectedRole, setSelectedRole] = useState<UserRole>('pm');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -45,37 +47,61 @@ export default function InternalLogin() {
     );
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!selectedRole) {
-      alert('Please select a role');
+      toast({
+        title: "Role required",
+        description: "Please select a role before signing in.",
+        variant: "destructive",
+      });
       return;
     }
     
-    // Mock login - create user and session
-    const newUser = {
-      email: formData.email,
-      name: formData.email.split('@')[0],
-      role: selectedRole as UserRole,
-    };
+    setIsSubmitting(true);
     
-    addUser(newUser);
-    const users = useAppStore.getState().users;
-    const createdUser = users[users.length - 1];
-    
-    // Set session
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-    login(createdUser.id, 'mock-token', expiresAt);
-    
-    // Navigate based on role
-    switch (selectedRole) {
-      case 'pm':
-      case 'admin':
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (error) {
+        toast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data.user) {
+        // Update user role in the database
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ role: selectedRole })
+          .eq('id', data.user.id);
+
+        if (updateError) {
+          console.error('Failed to update user role:', updateError);
+        }
+
+        toast({
+          title: "Welcome back!",
+          description: `Signed in as ${roleConfig[selectedRole].label}.`,
+        });
+        
         navigate('/internal/projects');
-        break;
-      default:
-        navigate('/');
+      }
+    } catch (error) {
+      toast({
+        title: "Login failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -145,7 +171,7 @@ export default function InternalLogin() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="team@buildflow.com"
+                  placeholder="team@specbridge.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
@@ -177,11 +203,10 @@ export default function InternalLogin() {
 
               <Button 
                 type="submit" 
-                className={`w-full border-0 shadow-glow transition-spring hover:scale-105 ${
-                  selectedRole === 'admin' ? 'bg-gradient-accent' : 'bg-gradient-secondary'
-                }`}
+                className={`w-full border-0 shadow-glow transition-spring hover:scale-105 ${roleConfig[selectedRole].gradient}`}
+                disabled={!formData.email || !formData.password || !selectedRole || isSubmitting}
               >
-                Sign In as {selectedRole ? roleConfig[selectedRole as keyof typeof roleConfig]?.label : 'Team Member'}
+                {isSubmitting ? "Signing In..." : `Sign In as ${roleConfig[selectedRole].label}`}
               </Button>
             </form>
 
@@ -200,7 +225,7 @@ export default function InternalLogin() {
 
         <div className="text-center text-xs text-muted-foreground">
           <Badge variant="outline" className="bg-accent/10 text-accent border-accent/20">
-            Demo Mode - Any email/password will work
+            Real Authentication Enabled
           </Badge>
         </div>
       </div>
