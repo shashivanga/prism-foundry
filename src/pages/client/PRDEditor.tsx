@@ -8,14 +8,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { useAppStore } from '@/store';
+import { useProjects } from '@/hooks/useProjects';
+import { usePRDVersions } from '@/hooks/usePRDVersions';
 import { ArrowLeft, FileText, Send, Save } from 'lucide-react';
 
 export default function PRDEditor() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const { currentUser } = useAuth({ requiredRole: 'client' });
-  const { projects, prdVersions, addPrdVersion, updatePrdVersion, getProjectById } = useAppStore();
+  const { getProjectById } = useProjects();
+  const { getLatestPRDVersion, createPRDVersion } = usePRDVersions(projectId);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -29,15 +31,17 @@ export default function PRDEditor() {
   });
 
   const project = projectId ? getProjectById(projectId) : null;
-  const existingPRD = prdVersions.find(prd => prd.projectId === projectId);
+  const existingPRD = projectId ? getLatestPRDVersion(projectId) : null;
 
   useEffect(() => {
     if (existingPRD) {
       // Parse existing PRD content
       try {
-        const content = JSON.parse(existingPRD.content);
+        const content = typeof existingPRD.content_json === 'string' 
+          ? JSON.parse(existingPRD.content_json) 
+          : existingPRD.content_json;
         setFormData({
-          title: existingPRD.title,
+          title: `${project?.name || 'Project'} - Product Requirements Document`,
           background: content.background || '',
           goals: content.goals || '',
           features: content.features || '',
@@ -48,8 +52,8 @@ export default function PRDEditor() {
         // If content is not JSON, treat as plain text
         setFormData(prev => ({
           ...prev,
-          title: existingPRD.title,
-          background: existingPRD.content
+          title: `${project?.name || 'Project'} - Product Requirements Document`,
+          background: existingPRD.content_md || ''
         }));
       }
     } else if (project) {
@@ -60,7 +64,7 @@ export default function PRDEditor() {
     }
   }, [existingPRD, project]);
 
-  if (!project || !currentUser || project.ownerId !== currentUser.id) {
+  if (!project || !currentUser || project.owner_user_id !== currentUser.id) {
     return (
       <AppLayout>
         <div className="text-center py-16">
@@ -83,28 +87,39 @@ export default function PRDEditor() {
     actionFn(true);
     
     try {
-      const content = JSON.stringify({
+      const contentJson = {
         background: formData.background,
         goals: formData.goals,
         features: formData.features,
         nonGoals: formData.nonGoals,
         constraints: formData.constraints
-      });
-
-      const prdData = {
-        projectId,
-        version: '1.0',
-        title: formData.title,
-        content,
-        authorId: currentUser.id,
-        status: submit ? 'review' as const : 'draft' as const
       };
 
-      if (existingPRD) {
-        updatePrdVersion(existingPRD.id, prdData);
-      } else {
-        addPrdVersion(prdData);
-      }
+      // Create markdown version
+      const contentMd = `# ${formData.title}
+
+## Background & Context
+${formData.background}
+
+## Goals & Objectives
+${formData.goals}
+
+## Key Features & Requirements
+${formData.features}
+
+## Non-Goals & Out of Scope
+${formData.nonGoals}
+
+## Constraints & Assumptions
+${formData.constraints}`;
+
+      const prdData = {
+        project_id: projectId,
+        content_md: contentMd,
+        content_json: contentJson
+      };
+
+      await createPRDVersion(prdData);
 
       if (submit) {
         navigate('/client/projects');
@@ -144,8 +159,8 @@ export default function PRDEditor() {
           
           <div className="flex items-center gap-2">
             {existingPRD && (
-              <Badge variant={existingPRD.status === 'review' ? 'default' : 'secondary'}>
-                {existingPRD.status === 'review' ? 'Under Review' : 'Draft'}
+              <Badge variant="default">
+                Version {existingPRD.version}
               </Badge>
             )}
           </div>

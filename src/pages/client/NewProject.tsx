@@ -8,13 +8,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { useAppStore } from '@/store';
+import { useProjects } from '@/hooks/useProjects';
 import { ArrowLeft, Plus, Lightbulb } from 'lucide-react';
 
 export default function NewProject() {
   const navigate = useNavigate();
   const { currentUser } = useAuth({ requiredRole: 'client' });
-  const { addProject } = useAppStore();
+  const { createProject } = useProjects();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -29,17 +29,17 @@ export default function NewProject() {
     setIsSubmitting(true);
     
     try {
-      // Create new project
-      addProject({
+      // Create new project in database
+      const project = await createProject({
         name: formData.name,
         description: formData.description,
-        ownerId: currentUser.id,
-        status: 'draft',
-        tags: formData.tags.filter(tag => tag.trim() !== '')
+        client_name: currentUser.full_name || currentUser.email || 'Unknown Client',
       });
 
-      // Navigate back to projects
-      navigate('/client/projects');
+      if (project) {
+        // Navigate back to projects
+        navigate('/client/projects');
+      }
     } catch (error) {
       console.error('Error creating project:', error);
     } finally {

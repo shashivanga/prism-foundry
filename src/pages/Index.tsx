@@ -3,35 +3,44 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { useAppStore } from '@/store';
-import { FolderOpen, FileText, Rocket, Activity } from 'lucide-react';
+import { useProjects } from '@/hooks/useProjects';
+import { 
+  FolderOpen, 
+  Plus, 
+  Clock, 
+  CheckCircle, 
+  Pause, 
+  Activity,
+  FileText,
+  Rocket
+} from 'lucide-react';
 
 const Index = () => {
   const { isAuthenticated, currentUser } = useAuth();
-  const { projects, prdVersions, mvpSpecs, builds } = useAppStore();
+  const { userProjects } = useProjects();
 
   const stats = [
     {
       title: 'Projects',
-      value: projects.length,
+      value: userProjects.length,
       icon: FolderOpen,
       color: 'gradient-primary',
     },
     {
-      title: 'PRD Versions',
-      value: prdVersions.length,
-      icon: FileText,
+      title: 'Active',
+      value: 0, // Will implement when we have status tracking
+      icon: CheckCircle,
       color: 'gradient-secondary',
     },
     {
-      title: 'MVP Specs',
-      value: mvpSpecs.length,
-      icon: Rocket,
+      title: 'In Progress',
+      value: 0, // Will implement when we have proper status tracking
+      icon: Clock,
       color: 'gradient-accent',
     },
     {
-      title: 'Builds',
-      value: builds.length,
+      title: 'Activity',
+      value: 0, // Will implement when we have activity tracking
       icon: Activity,
       color: 'gradient-primary',
     },

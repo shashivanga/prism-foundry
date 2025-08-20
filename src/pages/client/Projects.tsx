@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
-import { useAppStore } from '@/store';
+import { useProjects } from '@/hooks/useProjects';
+import { usePRDVersions } from '@/hooks/usePRDVersions';
 import { 
   FolderOpen, 
   Plus, 
@@ -23,37 +24,25 @@ const statusConfig = {
   active: { label: 'Active', color: 'bg-gradient-primary text-primary-foreground', icon: CheckCircle },
   paused: { label: 'Paused', color: 'bg-secondary text-secondary-foreground', icon: Pause },
   completed: { label: 'Completed', color: 'bg-gradient-accent text-accent-foreground', icon: CheckCircle },
-};
+} as const;
 
 export default function ClientProjects() {
   const navigate = useNavigate();
   const { currentUser } = useAuth({ requiredRole: 'client' });
-  const { projects, prdVersions, mvpSpecs } = useAppStore();
+  const { userProjects, loading } = useProjects();
+  const { getLatestPRDVersion } = usePRDVersions();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const userProjects = projects.filter(p => p.ownerId === currentUser?.id);
   const filteredProjects = userProjects.filter(project =>
     project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.description.toLowerCase().includes(searchQuery.toLowerCase())
+    (project.description || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getProjectPRD = (projectId: string) => {
-    return prdVersions.find(prd => prd.projectId === projectId);
-  };
-
-  const getProjectMVP = (projectId: string) => {
-    return mvpSpecs.find(spec => spec.projectId === projectId);
-  };
-
   const getSpecStatus = (projectId: string) => {
-    const prd = getProjectPRD(projectId);
-    const mvp = getProjectMVP(projectId);
+    const prd = getLatestPRDVersion(projectId);
     
     if (!prd) return 'No PRD';
-    if (prd.status === 'draft') return 'PRD Draft';
-    if (prd.status === 'review') return 'PRD Under Review';
-    if (!mvp) return 'Spec in Progress';
-    return 'Spec Ready';
+    return 'PRD Created';
   };
 
   return (
@@ -93,19 +82,41 @@ export default function ClientProjects() {
           </div>
           <div className="flex items-center justify-center">
             <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">{userProjects.length}</div>
+              <div className="text-2xl font-bold text-foreground">{loading ? '...' : userProjects.length}</div>
               <div className="text-sm text-muted-foreground">Total Projects</div>
             </div>
           </div>
         </div>
 
         {/* Projects Grid */}
-        {filteredProjects.length > 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="shadow-card">
+                <CardHeader className="pb-3">
+                  <div className="space-y-2">
+                    <div className="h-5 bg-muted rounded animate-pulse" />
+                    <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-3">
+                    <div className="h-4 bg-muted rounded animate-pulse" />
+                    <div className="flex gap-2">
+                      <div className="h-8 bg-muted rounded animate-pulse flex-1" />
+                      <div className="h-8 bg-muted rounded animate-pulse w-10" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : filteredProjects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProjects.map((project) => {
-              const statusInfo = statusConfig[project.status];
+              const statusInfo = statusConfig['draft']; // Default to draft since we don't have status in DB yet
               const StatusIcon = statusInfo.icon;
-              const prd = getProjectPRD(project.id);
+              const prd = getLatestPRDVersion(project.id);
               const specStatus = getSpecStatus(project.id);
 
               return (
@@ -136,22 +147,6 @@ export default function ClientProjects() {
                           {specStatus}
                         </Badge>
                       </div>
-
-                      {/* Project Tags */}
-                      {project.tags && project.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {project.tags.slice(0, 3).map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                          {project.tags.length > 3 && (
-                            <Badge variant="secondary" className="text-xs">
-                              +{project.tags.length - 3}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
 
                       {/* Action Buttons */}
                       <div className="flex gap-2 pt-2">

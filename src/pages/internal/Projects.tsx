@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
-import { useAppStore } from '@/store';
+import { useProjects } from '@/hooks/useProjects';
+import { usePRDVersions } from '@/hooks/usePRDVersions';
 import { 
   FolderOpen, 
   Search, 
@@ -37,35 +38,20 @@ const prdStatusConfig = {
 export default function InternalProjects() {
   const navigate = useNavigate();
   const { currentUser } = useAuth({ requiredRole: 'pm' });
-  const { projects, prdVersions, mvpSpecs, users } = useAppStore();
+  const { projects, loading } = useProjects();
+  const { getLatestPRDVersion } = usePRDVersions();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredProjects = projects.filter(project =>
     project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.description.toLowerCase().includes(searchQuery.toLowerCase())
+    (project.description || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getProjectOwner = (ownerId: string) => {
-    return users.find(user => user.id === ownerId);
-  };
-
-  const getProjectPRD = (projectId: string) => {
-    return prdVersions.find(prd => prd.projectId === projectId);
-  };
-
-  const getProjectMVP = (projectId: string) => {
-    return mvpSpecs.find(spec => spec.projectId === projectId);
-  };
-
   const getProjectStatus = (projectId: string) => {
-    const prd = getProjectPRD(projectId);
-    const mvp = getProjectMVP(projectId);
+    const prd = getLatestPRDVersion(projectId);
     
     if (!prd) return { status: 'No PRD', color: 'bg-muted text-muted-foreground', needsAction: false };
-    if (prd.status === 'draft') return { status: 'PRD Draft', color: 'bg-muted text-muted-foreground', needsAction: false };
-    if (prd.status === 'review') return { status: 'PRD Review', color: 'bg-gradient-secondary text-secondary-foreground', needsAction: true };
-    if (!mvp) return { status: 'Needs Spec', color: 'bg-gradient-accent text-accent-foreground', needsAction: true };
-    return { status: 'Spec Ready', color: 'bg-gradient-primary text-primary-foreground', needsAction: false };
+    return { status: 'PRD Created', color: 'bg-gradient-primary text-primary-foreground', needsAction: false };
   };
 
   const projectsNeedingAttention = filteredProjects.filter(project => {
@@ -88,13 +74,13 @@ export default function InternalProjects() {
     },
     {
       title: 'Active Clients',
-      value: new Set(projects.map(p => p.ownerId)).size,
+      value: new Set(projects.map(p => p.owner_user_id)).size,
       icon: Users,
       color: 'gradient-accent',
     },
     {
-      title: 'Completed Specs',
-      value: mvpSpecs.filter(spec => spec.status === 'completed').length,
+      title: 'With PRDs',
+      value: projects.filter(p => getLatestPRDVersion(p.id)).length,
       icon: Rocket,
       color: 'gradient-primary',
     },
@@ -165,7 +151,6 @@ export default function InternalProjects() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {projectsNeedingAttention.slice(0, 4).map((project) => {
-                  const owner = getProjectOwner(project.ownerId);
                   const projectStatus = getProjectStatus(project.id);
                   
                   return (
@@ -173,7 +158,7 @@ export default function InternalProjects() {
                       <div className="flex-1 min-w-0">
                         <div className="font-medium truncate">{project.name}</div>
                         <div className="text-sm text-muted-foreground">
-                          by {owner?.name || 'Unknown Client'}
+                          by {project.client_name}
                         </div>
                       </div>
                       <div className="flex items-center gap-2 ml-4">
@@ -205,14 +190,28 @@ export default function InternalProjects() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {filteredProjects.length > 0 ? (
+            {loading ? (
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex items-center justify-between p-4 rounded-lg border">
+                    <div className="flex items-start gap-4 flex-1">
+                      <div className="w-10 h-10 bg-muted rounded-lg animate-pulse" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-5 bg-muted rounded animate-pulse" />
+                        <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
+                        <div className="h-3 bg-muted rounded animate-pulse w-1/2" />
+                      </div>
+                    </div>
+                    <div className="w-4 h-4 bg-muted rounded animate-pulse" />
+                  </div>
+                ))}
+              </div>
+            ) : filteredProjects.length > 0 ? (
               <div className="space-y-4">
                 {filteredProjects.map((project) => {
-                  const owner = getProjectOwner(project.ownerId);
-                  const prd = getProjectPRD(project.id);
-                  const mvp = getProjectMVP(project.id);
-                  const statusInfo = statusConfig[project.status];
+                  const prd = getLatestPRDVersion(project.id);
                   const projectStatus = getProjectStatus(project.id);
+                  const statusInfo = statusConfig['draft']; // Default to draft
                   const StatusIcon = statusInfo.icon;
 
                   return (
@@ -237,18 +236,12 @@ export default function InternalProjects() {
                             {project.description}
                           </p>
                           <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <span>Client: {owner?.name || 'Unknown'}</span>
-                            <span>Created: {new Date(project.createdAt).toLocaleDateString()}</span>
+                            <span>Client: {project.client_name}</span>
+                            <span>Created: {new Date(project.created_at).toLocaleDateString()}</span>
                             {prd && (
                               <span className="flex items-center gap-1">
                                 <FileText className="h-3 w-3" />
-                                PRD: {prdStatusConfig[prd.status]?.label}
-                              </span>
-                            )}
-                            {mvp && (
-                              <span className="flex items-center gap-1">
-                                <Rocket className="h-3 w-3" />
-                                Spec: {mvp.status}
+                                PRD: Version {prd.version}
                               </span>
                             )}
                           </div>
