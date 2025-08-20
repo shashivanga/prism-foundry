@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjects } from '@/hooks/useProjects';
+import { useNavigate } from 'react-router-dom';
 import { 
   FolderOpen, 
   Plus, 
@@ -18,6 +19,7 @@ import {
 const Index = () => {
   const { isAuthenticated, currentUser } = useAuth();
   const { userProjects } = useProjects();
+  const navigate = useNavigate();
 
   const stats = [
     {
@@ -69,14 +71,14 @@ const Index = () => {
                 onClick={() => {
                   switch (currentUser?.role) {
                     case 'client':
-                      window.location.href = '/client/projects';
+                      navigate('/client/projects');
                       break;
                     case 'pm':
                     case 'admin':
-                      window.location.href = '/internal/projects';
+                      navigate('/internal/projects');
                       break;
                     default:
-                      window.location.href = '/client/auth/login';
+                      navigate('/client/auth/login');
                   }
                 }}
               >
@@ -86,14 +88,14 @@ const Index = () => {
               <>
                 <Button 
                   className="bg-gradient-primary border-0 shadow-glow transition-spring hover:scale-105"
-                  onClick={() => window.location.href = '/client/auth/signup'}
+                  onClick={() => navigate('/client/auth/signup')}
                 >
                   Get Started
                 </Button>
                 <Button 
                   variant="outline" 
                   className="transition-smooth"
-                  onClick={() => window.location.href = '/internal/auth/login'}
+                  onClick={() => navigate('/internal/auth/login')}
                 >
                   Team Access
                 </Button>
@@ -130,21 +132,51 @@ const Index = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button variant="outline" className="h-auto p-4 flex flex-col gap-2 transition-smooth hover:shadow-card">
+            <Button 
+              variant="outline" 
+              className="h-auto p-4 flex flex-col gap-2 transition-smooth hover:shadow-card"
+              onClick={() => {
+                if (isAuthenticated && currentUser?.role === 'client') {
+                  navigate('/client/projects/new');
+                } else {
+                  navigate('/client/auth/signup');
+                }
+              }}
+            >
               <FolderOpen className="h-8 w-8 text-primary" />
               <div className="text-center">
                 <div className="font-semibold">New Project</div>
                 <div className="text-sm text-muted-foreground">Start fresh with a new project</div>
               </div>
             </Button>
-            <Button variant="outline" className="h-auto p-4 flex flex-col gap-2 transition-smooth hover:shadow-card">
+            <Button 
+              variant="outline" 
+              className="h-auto p-4 flex flex-col gap-2 transition-smooth hover:shadow-card"
+              onClick={() => {
+                if (isAuthenticated && currentUser?.role === 'client') {
+                  navigate('/client/projects');
+                } else {
+                  navigate('/client/auth/signup');
+                }
+              }}
+            >
               <FileText className="h-8 w-8 text-secondary" />
               <div className="text-center">
                 <div className="font-semibold">Create PRD</div>
                 <div className="text-sm text-muted-foreground">Document your requirements</div>
               </div>
             </Button>
-            <Button variant="outline" className="h-auto p-4 flex flex-col gap-2 transition-smooth hover:shadow-card">
+            <Button 
+              variant="outline" 
+              className="h-auto p-4 flex flex-col gap-2 transition-smooth hover:shadow-card"
+              onClick={() => {
+                if (isAuthenticated && currentUser?.role === 'pm' || currentUser?.role === 'admin') {
+                  navigate('/internal/projects');
+                } else {
+                  navigate('/internal/auth/login');
+                }
+              }}
+            >
               <Rocket className="h-8 w-8 text-accent" />
               <div className="text-center">
                 <div className="font-semibold">Build MVP</div>

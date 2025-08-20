@@ -32,7 +32,7 @@ const getNavigationItems = (userRole?: string) => {
     return [
       ...baseItems,
       { title: 'My Projects', url: '/client/projects', icon: FolderOpen },
-      { title: 'Feedback', url: '/feedback', icon: MessageSquare },
+      { title: 'New Project', url: '/client/projects/new', icon: Settings },
     ];
   }
 
@@ -40,11 +40,6 @@ const getNavigationItems = (userRole?: string) => {
     return [
       ...baseItems,
       { title: 'All Projects', url: '/internal/projects', icon: FolderOpen },
-      { title: 'PRD Versions', url: '/prd-versions', icon: FileText },
-      { title: 'MVP Specs', url: '/mvp-specs', icon: Rocket },
-      { title: 'Builds', url: '/builds', icon: Settings },
-      { title: 'Share Links', url: '/share-links', icon: Share2 },
-      { title: 'Feedback', url: '/feedback', icon: MessageSquare },
     ];
   }
 

@@ -3,10 +3,12 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 
 export function TopBar() {
   const { isAuthenticated, currentUser, logout } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <header className="h-16 border-b border-sidebar-border bg-card/50 backdrop-blur-sm">
@@ -51,7 +53,7 @@ export function TopBar() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => window.location.href = '/client/auth/login'}
+                onClick={() => navigate('/client/auth/login')}
                 className="transition-smooth"
               >
                 Client Login
@@ -59,7 +61,7 @@ export function TopBar() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => window.location.href = '/internal/auth/login'}
+                onClick={() => navigate('/internal/auth/login')}
                 className="transition-smooth"
               >
                 Team Login
