@@ -61,21 +61,21 @@ export type Database = {
           created_at: string | null
           id: string
           mvp_spec_id: string | null
-          preview_url: string | null
+          preview_url: string
           project_id: string
         }
         Insert: {
           created_at?: string | null
           id?: string
           mvp_spec_id?: string | null
-          preview_url?: string | null
+          preview_url: string
           project_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
           mvp_spec_id?: string | null
-          preview_url?: string | null
+          preview_url?: string
           project_id?: string
         }
         Relationships: [
@@ -255,8 +255,8 @@ export type Database = {
           model: string | null
           prd_version_id: string
           project_id: string
-          spec_json: Json | null
-          spec_md: string | null
+          spec_json: Json
+          spec_md: string
           tasks: Json | null
         }
         Insert: {
@@ -265,8 +265,8 @@ export type Database = {
           model?: string | null
           prd_version_id: string
           project_id: string
-          spec_json?: Json | null
-          spec_md?: string | null
+          spec_json: Json
+          spec_md: string
           tasks?: Json | null
         }
         Update: {
@@ -275,8 +275,8 @@ export type Database = {
           model?: string | null
           prd_version_id?: string
           project_id?: string
-          spec_json?: Json | null
-          spec_md?: string | null
+          spec_json?: Json
+          spec_md?: string
           tasks?: Json | null
         }
         Relationships: [
@@ -298,8 +298,8 @@ export type Database = {
       }
       prd_versions: {
         Row: {
-          content_json: Json | null
-          content_md: string | null
+          content_json: Json
+          content_md: string
           created_at: string | null
           created_by: string
           id: string
@@ -307,8 +307,8 @@ export type Database = {
           version: number
         }
         Insert: {
-          content_json?: Json | null
-          content_md?: string | null
+          content_json: Json
+          content_md: string
           created_at?: string | null
           created_by: string
           id?: string
@@ -316,8 +316,8 @@ export type Database = {
           version: number
         }
         Update: {
-          content_json?: Json | null
-          content_md?: string | null
+          content_json?: Json
+          content_md?: string
           created_at?: string | null
           created_by?: string
           id?: string
@@ -343,7 +343,7 @@ export type Database = {
       }
       projects: {
         Row: {
-          client_name: string | null
+          client_name: string
           created_at: string | null
           description: string | null
           id: string
@@ -352,7 +352,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          client_name?: string | null
+          client_name: string
           created_at?: string | null
           description?: string | null
           id?: string
@@ -361,7 +361,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          client_name?: string | null
+          client_name?: string
           created_at?: string | null
           description?: string | null
           id?: string
@@ -437,7 +437,7 @@ export type Database = {
           created_at?: string | null
           email: string
           full_name?: string | null
-          id: string
+          id?: string
           role?: Database["public"]["Enums"]["role_enum"]
           updated_at?: string | null
         }
@@ -456,10 +456,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_user_role: {
-        Args: { user_id: string }
-        Returns: Database["public"]["Enums"]["role_enum"]
-      }
+      [_ in never]: never
     }
     Enums: {
       feedback_category: "bug" | "enhancement" | "scope" | "question"
