@@ -456,7 +456,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_access_project: {
+        Args: { project_id: string; user_id: string }
+        Returns: boolean
+      }
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: Database["public"]["Enums"]["role_enum"]
+      }
     }
     Enums: {
       feedback_category: "bug" | "enhancement" | "scope" | "question"
