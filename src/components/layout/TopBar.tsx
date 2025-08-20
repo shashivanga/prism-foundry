@@ -30,13 +30,13 @@ export function TopBar() {
               `}>
                 {currentUser.role.toUpperCase()}
               </Badge>
-              <Avatar className="h-8 w-8">
+               <Avatar className="h-8 w-8">
                 <AvatarImage src={currentUser.avatar} />
                 <AvatarFallback className="bg-gradient-primary text-primary-foreground">
-                  {currentUser.name.charAt(0).toUpperCase()}
+                  {currentUser.full_name?.charAt(0)?.toUpperCase() || currentUser.email?.charAt(0)?.toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm font-medium">{currentUser.name}</span>
+              <span className="text-sm font-medium">{currentUser.full_name || currentUser.email}</span>
               <Button 
                 variant="ghost" 
                 size="sm" 
